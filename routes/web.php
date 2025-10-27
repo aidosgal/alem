@@ -3,6 +3,7 @@
 use App\Http\Controllers\Manager\AuthController;
 use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\OrganizationController;
+use App\Http\Controllers\Manager\ServiceController;
 use App\Http\Controllers\Manager\VacancyController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +39,9 @@ Route::prefix('manager')->name('manager.')->group(function () {
             
             // Vacancy management
             Route::resource('vacancies', VacancyController::class);
+            
+            // Service management
+            Route::resource('services', ServiceController::class);
         });
     });
 });
