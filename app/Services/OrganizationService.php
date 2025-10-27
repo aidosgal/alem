@@ -11,10 +11,14 @@ use Exception;
 class OrganizationService
 {
     protected OrganizationRepository $organizationRepository;
+    protected OrderStatusService $orderStatusService;
 
-    public function __construct(OrganizationRepository $organizationRepository)
-    {
+    public function __construct(
+        OrganizationRepository $organizationRepository,
+        OrderStatusService $orderStatusService
+    ) {
         $this->organizationRepository = $organizationRepository;
+        $this->orderStatusService = $orderStatusService;
     }
 
     /**
@@ -25,6 +29,9 @@ class OrganizationService
         return DB::transaction(function () use ($data, $manager) {
             $organization = $this->organizationRepository->create($data);
             $this->organizationRepository->attachManager($organization, $manager);
+            
+            // Create default order statuses for the organization
+            $this->orderStatusService->createDefaultStatuses($organization);
             
             // Set as current organization
             session(['current_organization_id' => $organization->id]);

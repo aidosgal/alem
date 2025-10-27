@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\Manager\AuthController;
 use App\Http\Controllers\Manager\DashboardController;
+use App\Http\Controllers\Manager\OrderController;
+use App\Http\Controllers\Manager\OrderStatusController;
 use App\Http\Controllers\Manager\OrganizationController;
+use App\Http\Controllers\Manager\ServiceController;
 use App\Http\Controllers\Manager\VacancyController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +41,17 @@ Route::prefix('manager')->name('manager.')->group(function () {
             
             // Vacancy management
             Route::resource('vacancies', VacancyController::class);
+            
+            // Service management
+            Route::resource('services', ServiceController::class);
+            
+            // Order management (Kanban board)
+            Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+            Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+            
+            // Order Status management
+            Route::resource('order-statuses', OrderStatusController::class)->except(['show']);
+            Route::post('/order-statuses/initialize', [OrderStatusController::class, 'initializeDefaults'])->name('order-statuses.initialize');
         });
     });
 });
