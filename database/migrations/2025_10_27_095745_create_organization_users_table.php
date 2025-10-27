@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('organization_users', function (Blueprint $table) {
-            $table->uuid('id')->primary();
             $table->uuid('organization_id');
             $table->uuid('manager_id');
             $table->timestamps();
 
-            $table->foreign('organization_id')->references('id')->on('organizations');
-            $table->foreign('manager_id')->references('id')->on('managers');
+            $table->primary(['organization_id', 'manager_id']);
+            $table->foreign('organization_id')->references('id')->on('organizations')->onDelete('cascade');
+            $table->foreign('manager_id')->references('id')->on('managers')->onDelete('cascade');
         });
     }
 

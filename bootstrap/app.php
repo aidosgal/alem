@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'manager.has.organization' => \App\Http\Middleware\EnsureManagerHasOrganization::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

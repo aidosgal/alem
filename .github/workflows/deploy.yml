@@ -26,6 +26,10 @@ jobs:
             echo "Installing composer deps..."
             composer install --no-dev --optimize-autoloader
 
+            echo "Installing npm deps and building assets..."
+            npm install
+            npm run build
+
             echo "Running migrations..."
             php artisan migrate --force
 

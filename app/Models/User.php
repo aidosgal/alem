@@ -47,4 +47,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the manager profile for the user.
+     */
+    public function manager()
+    {
+        return $this->hasOne(Manager::class);
+    }
 }
