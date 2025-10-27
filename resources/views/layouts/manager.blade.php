@@ -44,7 +44,6 @@
                         </svg>
                         Вакансии
                     </a>
-
                     <a href="{{ route('manager.services.index') }}" 
                        class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('manager.services.*') ? 'bg-[#EFFE6D] text-gray-900' : 'text-gray-700 hover:bg-gray-100' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
