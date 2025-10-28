@@ -16,6 +16,7 @@ class Manager extends Model
         'user_id',
         'first_name',
         'last_name',
+        'phone',
     ];
 
     /**
@@ -32,7 +33,24 @@ class Manager extends Model
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'organization_users', 'manager_id', 'organization_id')
+                    ->withPivot('role')
                     ->withTimestamps();
+    }
+
+    /**
+     * Get the organizations owned by the manager.
+     */
+    public function ownedOrganizations()
+    {
+        return $this->organizations()->wherePivot('role', 'owner');
+    }
+
+    /**
+     * Get the organizations where manager is a member.
+     */
+    public function memberOrganizations()
+    {
+        return $this->organizations()->wherePivot('role', 'member');
     }
 
     /**
@@ -40,9 +58,12 @@ class Manager extends Model
      */
     public function currentOrganization()
     {
-        return session('current_organization_id') 
-            ? $this->organizations()->find(session('current_organization_id'))
-            : $this->organizations()->first();
+        if (session('current_organization_id')) {
+            return $this->organizations()->find(session('current_organization_id'));
+        }
+        
+        // Return first organization (owned or member)
+        return $this->organizations()->first();
     }
 
     /**

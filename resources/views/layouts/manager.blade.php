@@ -75,10 +75,58 @@
                         </svg>
                         Чат
                     </a>
+
+                    <div class="pt-4 mt-4 border-t border-gray-200">
+                        <a href="{{ route('manager.organizations.index') }}" 
+                           class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('manager.organizations.*') ? 'bg-[#EFFE6D] text-gray-900' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            Организации
+                        </a>
+
+                        <a href="{{ route('manager.profile.show') }}" 
+                           class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('manager.profile.*') ? 'bg-[#EFFE6D] text-gray-900' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Профиль
+                        </a>
+                    </div>
                 </nav>
 
                 <!-- User section -->
                 <div class="px-3 py-4 border-t border-gray-200">
+                    <!-- Quick Organization Switcher -->
+                    @if(auth()->check() && auth()->user()->manager)
+                        @php
+                            $currentOrg = auth()->user()->manager->currentOrganization();
+                            $allOrgs = auth()->user()->manager->organizations ?? collect([]);
+                            $otherOrgs = $allOrgs->reject(fn($org) => $currentOrg && $org->id === $currentOrg->id);
+                        @endphp
+                        
+                        @if($otherOrgs->isNotEmpty())
+                            <div class="mb-3 px-3">
+                                <p class="text-xs text-gray-500 mb-2">Переключить организацию:</p>
+                                <div class="space-y-1">
+                                    @foreach($otherOrgs->take(3) as $org)
+                                        <form action="{{ route('manager.organizations.switch', $org->id) }}" method="POST" class="inline-block w-full">
+                                            @csrf
+                                            <button type="submit" class="w-full text-left px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded transition-colors truncate">
+                                                {{ $org->name }}
+                                            </button>
+                                        </form>
+                                    @endforeach
+                                    @if($otherOrgs->count() > 3)
+                                        <a href="{{ route('manager.organizations.index') }}" class="block px-2 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                                            Все организации →
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+
                     <div class="flex items-center justify-between px-3 py-2">
                         <div class="flex items-center min-w-0">
                             <div class="w-8 h-8 bg-[#319885] rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">

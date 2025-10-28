@@ -52,6 +52,14 @@ class Order extends Model
     }
 
     /**
+     * Alias for orderStatus() for convenience.
+     */
+    public function status(): BelongsTo
+    {
+        return $this->orderStatus();
+    }
+
+    /**
      * Get the services attached to this order.
      */
     public function services(): BelongsToMany

@@ -6,11 +6,16 @@ use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\OrderController;
 use App\Http\Controllers\Manager\OrderStatusController;
 use App\Http\Controllers\Manager\OrganizationController;
+use App\Http\Controllers\Manager\OrganizationSwitchController;
+use App\Http\Controllers\Manager\ProfileController;
 use App\Http\Controllers\Manager\ServiceController;
 use App\Http\Controllers\Manager\VacancyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('manager.dashboard');
+    }
     return redirect()->route('manager.login');
 });
 
@@ -28,7 +33,20 @@ Route::prefix('manager')->name('manager.')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-        // Organization selection (for managers without organization)
+        // Profile management
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+        // Organization management
+        Route::get('/organizations', [OrganizationSwitchController::class, 'index'])->name('organizations.index');
+        Route::post('/organizations/{id}/switch', [OrganizationSwitchController::class, 'switch'])->name('organizations.switch');
+        Route::get('/organizations/create', [OrganizationSwitchController::class, 'create'])->name('organizations.create');
+        Route::post('/organizations', [OrganizationSwitchController::class, 'store'])->name('organizations.store');
+        Route::get('/organizations/join', [OrganizationSwitchController::class, 'joinForm'])->name('organizations.join');
+        Route::post('/organizations/join', [OrganizationSwitchController::class, 'join'])->name('organizations.join.submit');
+
+        // Organization selection (for managers without organization) - kept for compatibility
         Route::get('/organization/select', [OrganizationController::class, 'select'])->name('organization.select');
         Route::get('/organization/create', [OrganizationController::class, 'showCreateForm'])->name('organization.create');
         Route::post('/organization/create', [OrganizationController::class, 'create'])->name('organization.store');
