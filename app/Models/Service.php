@@ -16,6 +16,9 @@ class Service extends Model
         'title',
         'description',
         'price',
+        'status',
+        'image',
+        'category',
         'duration_days',
         'duration_max_days',
         'duration_min_days',
@@ -41,7 +44,9 @@ class Service extends Model
      */
     public function orders(): BelongsToMany
     {
-        return $this->belongsToMany(Order::class, 'order_services', 'service_id', 'order_id');
+        return $this->belongsToMany(Order::class, 'order_services', 'service_id', 'order_id')
+            ->withPivot('price', 'quantity')
+            ->withTimestamps();
     }
 
     /**
@@ -52,3 +57,4 @@ class Service extends Model
         return $this->title;
     }
 }
+
