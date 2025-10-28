@@ -23,8 +23,6 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|max:20',
-            'city' => 'nullable|string|max:255',
-            'date_of_birth' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -38,6 +36,7 @@ class AuthController extends Controller
         // Create user
         $user = User::create([
             'email' => $request->email,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 
@@ -46,9 +45,6 @@ class AuthController extends Controller
             'user_id' => $user->id,
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
-            'phone' => $request->phone,
-            'city' => $request->city,
-            'date_of_birth' => $request->date_of_birth,
         ]);
 
         // Create token

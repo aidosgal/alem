@@ -13,6 +13,10 @@ class Message extends Model
     protected $fillable = [
         'chat_id',
         'content',
+        'sender_type',
+        'sender_id',
+        'replied_to_id',
+        'is_read',
         'type',
         'file_path',
         'file_name',
@@ -28,6 +32,38 @@ class Message extends Model
         'metadata' => 'array',
         'read_at' => 'datetime',
     ];
+
+    protected $appends = ['sender_type', 'is_read', 'replied_to_id'];
+
+    /**
+     * Get sender_type attribute.
+     */
+    public function getSenderTypeAttribute()
+    {
+        if ($this->sender_applicant_id) {
+            return 'applicant';
+        }
+        if ($this->sender_organization_manager_id) {
+            return 'manager';
+        }
+        return null;
+    }
+
+    /**
+     * Get is_read attribute.
+     */
+    public function getIsReadAttribute()
+    {
+        return !is_null($this->read_at);
+    }
+
+    /**
+     * Get replied_to_id attribute (alias).
+     */
+    public function getRepliedToIdAttribute()
+    {
+        return $this->reply_to_message_id;
+    }
 
     /**
      * Get the chat that owns the message.
@@ -59,6 +95,22 @@ class Message extends Model
     public function replyTo(): BelongsTo
     {
         return $this->belongsTo(Message::class, 'reply_to_message_id');
+    }
+
+    /**
+     * Get the message being replied to (alias for controller compatibility).
+     */
+    public function repliedTo(): BelongsTo
+    {
+        return $this->belongsTo(Message::class, 'reply_to_message_id');
+    }
+
+    /**
+     * Get the message attachments.
+     */
+    public function attachments()
+    {
+        return $this->hasMany(MessageAttachment::class);
     }
 
     /**

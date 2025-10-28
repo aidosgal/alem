@@ -38,11 +38,11 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'chats' => $chats->map(function($chat) use ($applicant) {
+                $chats->map(function($chat) use ($applicant) {
                     $lastMessage = $chat->messages->first();
                     $unreadCount = $chat->messages()
-                        ->where('sender_type', 'manager')
-                        ->where('is_read', false)
+                        ->whereNotNull('sender_organization_manager_id')
+                        ->whereNull('read_at')
                         ->count();
 
                     return [
@@ -131,9 +131,9 @@ class ChatController extends Controller
 
         // Mark messages as read
         $chat->messages()
-            ->where('sender_type', 'manager')
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+            ->whereNotNull('sender_organization_manager_id')
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
 
         // Get messages with pagination
         $perPage = $request->get('per_page', 50);
@@ -239,9 +239,8 @@ class ChatController extends Controller
         $message = Message::create([
             'chat_id' => $chat->id,
             'content' => $request->content,
-            'sender_type' => 'applicant',
-            'sender_id' => $applicant->id,
-            'replied_to_id' => $request->replied_to_id,
+            'sender_applicant_id' => $applicant->id,
+            'reply_to_message_id' => $request->replied_to_id,
         ]);
 
         // Handle attachments
@@ -325,9 +324,9 @@ class ChatController extends Controller
         }
 
         $chat->messages()
-            ->where('sender_type', 'manager')
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+            ->whereNotNull('sender_organization_manager_id')
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
 
         return response()->json([
             'success' => true,

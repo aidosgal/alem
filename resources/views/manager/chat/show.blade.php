@@ -5,31 +5,40 @@
 @section('content')
 <div class="h-[calc(100vh-8rem)] flex flex-col max-w-7xl mx-auto">
     <!-- Chat header -->
-    <div class="bg-white border border-gray-200 rounded-t-lg p-4 flex items-center justify-between">
+    <div class="bg-white border border-gray-200 rounded-t-lg p-4 flex items-center justify-between shadow-sm backdrop-blur-sm bg-white/95 sticky top-0 z-10">
         <div class="flex items-center">
-            <a href="{{ route('manager.chat.index') }}" class="mr-4 text-gray-600 hover:text-gray-900">
+            <a href="{{ route('manager.chat.index') }}" class="mr-4 text-gray-600 hover:text-gray-900 transition-all duration-300 hover:scale-110">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
             </a>
-            <div class="w-10 h-10 bg-[#319885] rounded-full flex items-center justify-center text-white font-semibold">
+            <div class="w-10 h-10 bg-gradient-to-br from-[#319885] to-[#2a8070] rounded-full flex items-center justify-center text-white font-semibold avatar shadow-md">
                 {{ strtoupper(substr($chat->applicant->user->name ?? 'A', 0, 1)) }}
             </div>
             <div class="ml-3">
                 <h2 class="text-lg font-semibold text-gray-900">{{ $chat->applicant->user->name ?? 'Аппликант' }}</h2>
-                <p class="text-sm text-gray-500" id="typing-indicator" style="display: none;">Печатает...</p>
-                <p class="text-sm text-gray-500" id="connection-status">●<span class="ml-1">Подключение...</span></p>
+                <div class="flex items-center gap-2">
+                    <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <div class="connection-status text-sm" id="connection-status">
+                        <span class="status-dot disconnected"></span>
+                        <span class="text-gray-500">Подключение...</span>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="flex gap-2">
             @if($chat->order)
                 <a href="{{ route('manager.orders.index') }}" 
-                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-300 hover-lift">
                     Заказ: {{ $chat->order->title }}
                 </a>
             @else
                 <button onclick="openOrderModal()" 
-                        class="px-4 py-2 text-sm font-medium text-gray-900 bg-[#EFFE6D] rounded-lg hover:bg-[#EFFE6D]/90 transition-colors">
+                        class="px-4 py-2 text-sm font-medium text-gray-900 bg-[#EFFE6D] rounded-lg hover:bg-[#EFFE6D]/90 transition-all duration-300 btn-ripple shadow-md hover:shadow-lg">
                     Создать заказ
                 </button>
             @endif
@@ -38,13 +47,13 @@
 
     <!-- Messages container -->
     <div id="messages-container" 
-         class="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-4"
-         style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><text x=\"50%\" y=\"50%\" font-size=\"80\" text-anchor=\"middle\" fill=\"%23f3f4f6\" opacity=\"0.1\">💬</text></svg>')">
+         class="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100 p-4 space-y-4 custom-scrollbar"
+         style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><text x=\"50%\" y=\"50%\" font-size=\"80\" text-anchor=\"middle\" fill=\"%23e5e7eb\" opacity=\"0.05\">💬</text></svg>')">
         
         <!-- Load more button -->
         <div id="load-more-container" class="text-center" style="display: none;">
             <button onclick="loadMoreMessages()" 
-                    class="px-4 py-2 text-sm text-gray-600 bg-white rounded-lg border border-gray-300 hover:bg-gray-50">
+                    class="px-4 py-2 text-sm text-gray-600 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-300 hover-lift shadow-sm">
                 Загрузить еще
             </button>
         </div>
@@ -63,22 +72,22 @@
     </div>
 
     <!-- Message input -->
-    <div class="bg-white border border-gray-200 rounded-b-lg p-4">
+    <div class="bg-white border border-gray-200 rounded-b-lg p-4 shadow-lg backdrop-blur-sm bg-white/95">
         <!-- File upload area (drag & drop) -->
         <div id="drop-zone" 
-             class="border-2 border-dashed border-gray-300 rounded-lg p-4 mb-3 text-center transition-colors"
+             class="border-2 border-dashed border-gray-300 rounded-lg p-4 mb-3 text-center drop-zone transition-all duration-300"
              style="display: none;">
-            <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-12 h-12 mx-auto text-gray-400 mb-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
             </svg>
             <p class="text-sm text-gray-600">Перетащите файлы сюда или <span class="text-[#319885] font-medium">выберите</span></p>
         </div>
 
         <!-- Selected file preview -->
-        <div id="file-preview" class="mb-3" style="display: none;">
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div id="file-preview" class="mb-3 message-enter" style="display: none;">
+            <div class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 shadow-sm">
                 <div class="flex items-center">
-                    <svg class="w-8 h-8 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-8 h-8 text-[#319885] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     <div>
@@ -86,7 +95,7 @@
                         <p class="text-xs text-gray-500" id="file-size"></p>
                     </div>
                 </div>
-                <button onclick="clearFile()" class="text-red-600 hover:text-red-800">
+                <button onclick="clearFile()" class="text-red-600 hover:text-red-800 transition-all duration-300 hover:scale-110">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -100,7 +109,7 @@
             
             <button type="button" 
                     onclick="document.getElementById('file-input').click()"
-                    class="flex-shrink-0 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="flex-shrink-0 px-3 py-2 text-gray-600 hover:text-[#319885] hover:bg-gray-100 rounded-lg transition-all duration-300 hover:scale-110">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                 </svg>
@@ -110,26 +119,31 @@
                       name="content"
                       rows="1"
                       placeholder="Введите сообщение..."
-                      class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent resize-none"
+                      class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent resize-none input-animated transition-all duration-300"
                       onkeydown="handleKeyDown(event)"
                       oninput="handleTyping()"></textarea>
 
             <button type="submit" 
-                    class="flex-shrink-0 px-6 py-2 text-sm font-medium text-gray-900 bg-[#EFFE6D] rounded-lg hover:bg-[#EFFE6D]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="flex-shrink-0 px-6 py-2 text-sm font-medium text-gray-900 bg-gradient-to-r from-[#EFFE6D] to-[#f5ff80] rounded-lg hover:from-[#f5ff80] hover:to-[#EFFE6D] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed btn-ripple shadow-md hover:shadow-lg"
                     id="send-button">
-                Отправить
+                <span class="flex items-center gap-2">
+                    <span>Отправить</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </span>
             </button>
         </form>
     </div>
 </div>
 
 <!-- Order creation modal -->
-<div id="order-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-    <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+<div id="order-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center modal-backdrop backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-2xl font-bold text-gray-900">Создать заказ</h3>
-                <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600">
+                <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 transition-all duration-300 hover:scale-110">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -146,7 +160,7 @@
                     <input type="text" 
                            name="title" 
                            required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent input-animated">
                 </div>
 
                 <!-- Description -->
@@ -154,15 +168,15 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
                     <textarea name="description" 
                               rows="3"
-                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent"></textarea>
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent input-animated resize-none"></textarea>
                 </div>
 
                 <!-- Services -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Услуги</label>
-                    <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                    <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 custom-scrollbar">
                         @foreach($services as $service)
-                            <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                            <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer transition-all duration-300">
                                 <input type="checkbox" 
                                        name="service_ids[]" 
                                        value="{{ $service->id }}"
@@ -188,7 +202,7 @@
                            step="0.01"
                            min="0"
                            required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent input-animated">
                     <p class="mt-1 text-xs text-gray-500">Можно изменить независимо от суммы услуг</p>
                 </div>
 
@@ -197,18 +211,18 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Срок выполнения</label>
                     <input type="datetime-local" 
                            name="deadline_at"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent input-animated">
                 </div>
 
                 <!-- Buttons -->
                 <div class="flex gap-3 justify-end">
                     <button type="button" 
                             onclick="closeOrderModal()"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 hover-lift">
                         Отмена
                     </button>
                     <button type="submit" 
-                            class="px-4 py-2 text-sm font-medium text-gray-900 bg-[#EFFE6D] rounded-lg hover:bg-[#EFFE6D]/90">
+                            class="px-4 py-2 text-sm font-medium text-gray-900 bg-[#EFFE6D] rounded-lg hover:bg-[#EFFE6D]/90 transition-all duration-300 btn-ripple shadow-md hover:shadow-lg">
                         Создать заказ
                     </button>
                 </div>
@@ -294,10 +308,21 @@ function attemptReconnect() {
 // Update connection status indicator
 function updateConnectionStatus(connected, customMessage = null) {
     const statusEl = document.getElementById('connection-status');
+    const statusDot = statusEl.querySelector('.status-dot');
+    const statusText = statusEl.querySelector('span:last-child');
+    
     if (connected) {
-        statusEl.innerHTML = '<span class="text-green-600">●</span><span class="ml-1 text-green-600">Подключено</span>';
+        statusDot.classList.remove('disconnected');
+        statusDot.classList.add('connected');
+        statusText.textContent = 'Подключено';
+        statusText.classList.remove('text-red-600');
+        statusText.classList.add('text-green-600');
     } else {
-        statusEl.innerHTML = '<span class="text-red-600">●</span><span class="ml-1 text-red-600">' + (customMessage || 'Не подключено') + '</span>';
+        statusDot.classList.remove('connected');
+        statusDot.classList.add('disconnected');
+        statusText.textContent = customMessage || 'Не подключено';
+        statusText.classList.remove('text-green-600');
+        statusText.classList.add('text-red-600');
     }
 }
 
@@ -418,13 +443,13 @@ function preventDefaults(e) {
 ['dragenter', 'dragover'].forEach(eventName => {
     messagesContainer.addEventListener(eventName, () => {
         dropZone.style.display = 'block';
-        dropZone.classList.add('border-[#319885]', 'bg-[#319885]/5');
+        dropZone.classList.add('drag-over');
     }, false);
 });
 
 ['dragleave', 'drop'].forEach(eventName => {
     messagesContainer.addEventListener(eventName, () => {
-        dropZone.classList.remove('border-[#319885]', 'bg-[#319885]/5');
+        dropZone.classList.remove('drag-over');
         setTimeout(() => {
             if (!messagesContainer.matches(':hover')) {
                 dropZone.style.display = 'none';
@@ -448,24 +473,29 @@ function appendMessage(messageData) {
     const isOwnMessage = messageData.sender.type === 'manager';
     
     const messageDiv = document.createElement('div');
-    messageDiv.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`;
+    messageDiv.className = `flex ${isOwnMessage ? 'justify-end message-enter-right' : 'justify-start message-enter-left'}`;
     messageDiv.innerHTML = createMessageHTML(messageData, isOwnMessage);
     
     messagesList.appendChild(messageDiv);
+    
+    // Trigger animation
+    setTimeout(() => {
+        messageDiv.classList.remove('message-enter-right', 'message-enter-left');
+    }, 400);
 }
 
 function createMessageHTML(msg, isOwn) {
-    const bgClass = isOwn ? 'bg-[#EFFE6D]' : 'bg-white';
+    const bgClass = isOwn ? 'message-bubble message-bubble-right' : 'message-bubble message-bubble-left';
     const timeStr = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     
     let contentHTML = '';
     
     if (msg.type === 'image') {
-        contentHTML = `<img src="/storage/${msg.file_path}" alt="${msg.file_name}" class="max-w-xs rounded-lg mb-2">`;
+        contentHTML = `<img src="/storage/${msg.file_path}" alt="${msg.file_name}" class="max-w-xs rounded-lg mb-2 image-preview">`;
     } else if (msg.type === 'file') {
         contentHTML = `
-            <a href="/manager/chat/message/${msg.id}/download" class="flex items-center p-3 bg-gray-50 rounded-lg mb-2 hover:bg-gray-100">
-                <svg class="w-8 h-8 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="/manager/chat/message/${msg.id}/download" class="flex items-center p-3 bg-gray-50/50 rounded-lg mb-2 hover:bg-gray-100/80 transition-all duration-300">
+                <svg class="w-8 h-8 text-[#319885] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 <div>
@@ -476,7 +506,7 @@ function createMessageHTML(msg, isOwn) {
         `;
     } else if (msg.type === 'order') {
         contentHTML = `
-            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-2">
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-2 transition-all duration-300 hover:shadow-md">
                 <p class="text-sm font-medium text-blue-900">📋 ${msg.metadata.order_title}</p>
                 <p class="text-xs text-blue-700">Цена: $${msg.metadata.order_price}</p>
             </div>
@@ -488,10 +518,13 @@ function createMessageHTML(msg, isOwn) {
     }
     
     return `
-        <div class="max-w-xl ${bgClass} rounded-lg p-3 shadow-sm">
+        <div class="max-w-xl ${bgClass} rounded-2xl p-3 shadow-sm">
             ${!isOwn ? `<p class="text-xs font-medium text-gray-600 mb-1">${escapeHtml(msg.sender.name)}</p>` : ''}
             ${contentHTML}
-            <p class="text-xs text-gray-500 mt-1">${timeStr}</p>
+            <p class="text-xs text-gray-500 mt-1 flex items-center justify-between">
+                <span>${timeStr}</span>
+                ${isOwn ? '<svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </p>
         </div>
     `;
 }
@@ -548,13 +581,16 @@ async function loadMoreMessages() {
 
 // Order modal functions
 function openOrderModal() {
-    document.getElementById('order-modal').classList.remove('hidden');
-    document.getElementById('order-modal').classList.add('flex');
+    const modal = document.getElementById('order-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex', 'modal-enter');
+    setTimeout(() => modal.classList.remove('modal-enter'), 300);
 }
 
 function closeOrderModal() {
-    document.getElementById('order-modal').classList.remove('flex');
-    document.getElementById('order-modal').classList.add('hidden');
+    const modal = document.getElementById('order-modal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
 }
 
 function calculateTotalPrice() {
