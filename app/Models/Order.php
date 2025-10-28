@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Order extends Model
 {
@@ -48,5 +49,22 @@ class Order extends Model
     public function orderStatus(): BelongsTo
     {
         return $this->belongsTo(OrderStatus::class, 'status_id');
+    }
+
+    /**
+     * Get the services attached to this order.
+     */
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class, 'order_services')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the chat associated with this order.
+     */
+    public function chat()
+    {
+        return $this->hasOne(Chat::class);
     }
 }

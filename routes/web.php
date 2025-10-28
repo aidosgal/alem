@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Manager\AuthController;
+use App\Http\Controllers\Manager\ChatController;
 use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\OrderController;
 use App\Http\Controllers\Manager\OrderStatusController;
@@ -52,6 +53,14 @@ Route::prefix('manager')->name('manager.')->group(function () {
             // Order Status management
             Route::resource('order-statuses', OrderStatusController::class)->except(['show']);
             Route::post('/order-statuses/initialize', [OrderStatusController::class, 'initializeDefaults'])->name('order-statuses.initialize');
+            
+            // Chat management
+            Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+            Route::get('/chat/{id}', [ChatController::class, 'show'])->name('chat.show');
+            Route::post('/chat/{id}/message', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+            Route::get('/chat/{id}/messages', [ChatController::class, 'loadMessages'])->name('chat.loadMessages');
+            Route::post('/chat/{id}/order', [ChatController::class, 'createOrder'])->name('chat.createOrder');
+            Route::get('/chat/message/{messageId}/download', [ChatController::class, 'downloadFile'])->name('chat.downloadFile');
         });
     });
 });
