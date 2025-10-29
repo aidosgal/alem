@@ -23,7 +23,7 @@ class MessageSent implements ShouldBroadcastNow
     public function __construct(Message $message)
     {
         $this->message = $message->load([
-            'senderApplicant.user',
+            'senderApplicant',
             'senderManager',
             'replyTo',
         ]);

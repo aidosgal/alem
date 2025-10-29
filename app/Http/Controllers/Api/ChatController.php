@@ -37,33 +37,31 @@ class ChatController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => [
-                $chats->map(function($chat) use ($applicant) {
-                    $lastMessage = $chat->messages->first();
-                    $unreadCount = $chat->messages()
-                        ->whereNotNull('sender_organization_manager_id')
-                        ->whereNull('read_at')
-                        ->count();
+            'data' => $chats->map(function($chat) use ($applicant) {
+                $lastMessage = $chat->messages->first();
+                $unreadCount = $chat->messages()
+                    ->whereNotNull('sender_organization_manager_id')
+                    ->whereNull('read_at')
+                    ->count();
 
-                    return [
-                        'id' => $chat->id,
-                        'organization' => [
-                            'id' => $chat->organization->id,
-                            'name' => $chat->organization->name,
-                            'logo' => $chat->organization->logo,
-                        ],
-                        'last_message' => $lastMessage ? [
-                            'id' => $lastMessage->id,
-                            'content' => $lastMessage->content,
-                            'sender_type' => $lastMessage->sender_type,
-                            'has_attachments' => $lastMessage->attachments()->exists(),
-                            'created_at' => $lastMessage->created_at->toISOString(),
-                        ] : null,
-                        'unread_count' => $unreadCount,
-                        'updated_at' => $chat->updated_at->toISOString(),
-                    ];
-                })
-            ]
+                return [
+                    'id' => $chat->id,
+                    'organization' => [
+                        'id' => $chat->organization->id,
+                        'name' => $chat->organization->name,
+                        'logo' => $chat->organization->logo,
+                    ],
+                    'last_message' => $lastMessage ? [
+                        'id' => $lastMessage->id,
+                        'content' => $lastMessage->content,
+                        'sender_type' => $lastMessage->sender_type,
+                        'has_attachments' => $lastMessage->attachments()->exists(),
+                        'created_at' => $lastMessage->created_at->toISOString(),
+                    ] : null,
+                    'unread_count' => $unreadCount,
+                    'updated_at' => $chat->updated_at->toISOString(),
+                ];
+            })
         ], 200);
     }
 
@@ -97,15 +95,13 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'chat' => [
-                    'id' => $chat->id,
-                    'organization' => [
-                        'id' => $chat->organization->id,
-                        'name' => $chat->organization->name,
-                        'logo' => $chat->organization->logo,
-                    ],
-                    'created_at' => $chat->created_at->toISOString(),
-                ]
+                'id' => $chat->id,
+                'organization' => [
+                    'id' => $chat->organization->id,
+                    'name' => $chat->organization->name,
+                    'logo' => $chat->organization->logo,
+                ],
+                'created_at' => $chat->created_at->toISOString(),
             ]
         ], 200);
     }

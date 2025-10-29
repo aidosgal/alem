@@ -135,7 +135,7 @@ class Message extends Model
     public function getSenderNameAttribute(): string
     {
         if ($this->isFromApplicant()) {
-            return $this->senderApplicant->user->name ?? 'Applicant';
+            return $this->senderApplicant->full_name ?? 'Applicant';
         }
         
         return $this->senderManager->full_name ?? 'Manager';
