@@ -12,30 +12,34 @@ class OrganizationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Organization::query();
+        $query = Organization::withCount('vacancies');
 
         // Optional search filter
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'ILIKE', "%{$search}%")
-                  ->orWhere('description', 'ILIKE', "%{$search}%")
-                  ->orWhere('city', 'ILIKE', "%{$search}%");
+                  ->orWhere('description', 'ILIKE', "%{$search}%");
             });
         }
 
-        // Optional city filter
-        if ($request->has('city')) {
-            $query->where('city', $request->city);
-        }
-
-        $organizations = $query->select('id', 'name', 'description', 'city', 'address')
+        $organizations = $query->select('id', 'name', 'description', 'image', 'email', 'phone')
             ->orderBy('name')
             ->get();
 
         return response()->json([
             'success' => true,
-            'data' => $organizations
+            'data' => $organizations->map(function($org) {
+                return [
+                    'id' => $org->id,
+                    'name' => $org->name,
+                    'description' => $org->description,
+                    'image' => $org->image,
+                    'email' => $org->email,
+                    'phone' => $org->phone,
+                    'vacancies_count' => $org->vacancies_count,
+                ];
+            })
         ], 200);
     }
 
@@ -44,7 +48,9 @@ class OrganizationController extends Controller
      */
     public function show($id)
     {
-        $organization = Organization::find($id);
+        $organization = Organization::with(['services' => function($query) {
+            $query->where('status', 'active');
+        }])->find($id);
 
         if (!$organization) {
             return response()->json([
@@ -55,7 +61,28 @@ class OrganizationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $organization
+            'data' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'description' => $organization->description,
+                'image' => $organization->image,
+                'email' => $organization->email,
+                'phone' => $organization->phone,
+                'services' => $organization->services->map(function($service) {
+                    return [
+                        'id' => $service->id,
+                        'title' => $service->title,
+                        'description' => $service->description,
+                        'price' => $service->price,
+                        'image' => $service->image,
+                        'category' => $service->category,
+                        'duration_days' => $service->duration_days,
+                        'duration_min_days' => $service->duration_min_days,
+                        'duration_max_days' => $service->duration_max_days,
+                        'status' => $service->status,
+                    ];
+                })
+            ]
         ], 200);
     }
 }

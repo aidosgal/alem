@@ -66,11 +66,11 @@
                         <td class="px-6 py-4 text-sm text-gray-700">
                             @if(isset($vacancy->details['salary_from']) || isset($vacancy->details['salary_to']))
                                 @if(isset($vacancy->details['salary_from']) && isset($vacancy->details['salary_to']))
-                                    {{ number_format($vacancy->details['salary_from']) }}–{{ number_format($vacancy->details['salary_to']) }} {{ $vacancy->details['currency'] ?? 'EUR' }}
+                                    {{ number_format($vacancy->details['salary_from']) }}–{{ number_format($vacancy->details['salary_to']) }} {{ $vacancy->details['currency'] ?? '₸' }}
                                 @elseif(isset($vacancy->details['salary_from']))
-                                    от {{ number_format($vacancy->details['salary_from']) }} {{ $vacancy->details['currency'] ?? 'EUR' }}
+                                    от {{ number_format($vacancy->details['salary_from']) }} {{ $vacancy->details['currency'] ?? '₸' }}
                                 @else
-                                    до {{ number_format($vacancy->details['salary_to']) }} {{ $vacancy->details['currency'] ?? 'EUR' }}
+                                    до {{ number_format($vacancy->details['salary_to']) }} {{ $vacancy->details['currency'] ?? '₸' }}
                                 @endif
                             @else
                                 —

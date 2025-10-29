@@ -13,8 +13,7 @@ class VacancyController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Vacancy::with(['organization'])
-            ->where('status', 'active');
+        $query = Vacancy::with(['organization']);
 
         // Search by title or description
         if ($request->has('search')) {
@@ -25,34 +24,39 @@ class VacancyController extends Controller
             });
         }
 
-        // Filter by city
-        if ($request->has('city')) {
-            $query->where('city', $request->city);
-        }
-
-        // Filter by type
-        if ($request->has('type')) {
-            $query->where('type', $request->type);
-        }
-
-        // Filter by salary range
-        if ($request->has('min_salary')) {
-            $query->where('salary_from', '>=', $request->min_salary);
-        }
-
-        if ($request->has('max_salary')) {
-            $query->where('salary_to', '<=', $request->max_salary);
-        }
-
         // Filter by organization
         if ($request->has('organization_id')) {
             $query->where('organization_id', $request->organization_id);
         }
 
+        // Filter by location (stored in details->location)
+        if ($request->has('location')) {
+            $query->whereRaw("details->>'location' ILIKE ?", ["%{$request->location}%"]);
+        }
+
+        // Filter by employment type (stored in details->employment_type)
+        if ($request->has('employment_type')) {
+            $query->whereRaw("details->>'employment_type' = ?", [$request->employment_type]);
+        }
+
+        // Filter by salary range
+        if ($request->has('min_salary')) {
+            $query->whereRaw("CAST(details->>'salary_from' AS DECIMAL) >= ?", [$request->min_salary]);
+        }
+
+        if ($request->has('max_salary')) {
+            $query->whereRaw("CAST(details->>'salary_to' AS DECIMAL) <= ?", [$request->max_salary]);
+        }
+
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
+        
+        if (in_array($sortBy, ['created_at', 'updated_at', 'title'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('created_at', $sortOrder);
+        }
 
         // Pagination
         $perPage = $request->get('per_page', 15);
@@ -66,18 +70,11 @@ class VacancyController extends Controller
                         'id' => $vacancy->id,
                         'title' => $vacancy->title,
                         'description' => $vacancy->description,
-                        'requirements' => $vacancy->requirements,
-                        'type' => $vacancy->type,
-                        'city' => $vacancy->city,
-                        'address' => $vacancy->address,
-                        'salary_from' => $vacancy->salary_from,
-                        'salary_to' => $vacancy->salary_to,
-                        'salary_display' => $vacancy->salary_display,
-                        'status' => $vacancy->status,
+                        'details' => $vacancy->details,
                         'organization' => [
                             'id' => $vacancy->organization->id,
                             'name' => $vacancy->organization->name,
-                            'logo' => $vacancy->organization->logo,
+                            'image' => $vacancy->organization->image,
                         ],
                         'created_at' => $vacancy->created_at->toISOString(),
                         'updated_at' => $vacancy->updated_at->toISOString(),
@@ -116,20 +113,13 @@ class VacancyController extends Controller
                     'id' => $vacancy->id,
                     'title' => $vacancy->title,
                     'description' => $vacancy->description,
-                    'requirements' => $vacancy->requirements,
-                    'type' => $vacancy->type,
-                    'city' => $vacancy->city,
-                    'address' => $vacancy->address,
-                    'salary_from' => $vacancy->salary_from,
-                    'salary_to' => $vacancy->salary_to,
-                    'salary_display' => $vacancy->salary_display,
-                    'status' => $vacancy->status,
+                    'details' => $vacancy->details,
                     'organization' => [
                         'id' => $vacancy->organization->id,
                         'name' => $vacancy->organization->name,
                         'description' => $vacancy->organization->description,
-                        'logo' => $vacancy->organization->logo,
-                        'address' => $vacancy->organization->address,
+                        'image' => $vacancy->organization->image,
+                        'email' => $vacancy->organization->email,
                         'phone' => $vacancy->organization->phone,
                     ],
                     'created_at' => $vacancy->created_at->toISOString(),
@@ -144,37 +134,39 @@ class VacancyController extends Controller
      */
     public function cities()
     {
-        $cities = Vacancy::where('status', 'active')
-            ->whereNotNull('city')
-            ->distinct()
-            ->pluck('city')
+        // Since location is stored in details jsonb field, we need to extract unique values
+        $vacancies = Vacancy::whereNotNull('details')->get();
+        
+        $locations = $vacancies->pluck('details.location')
             ->filter()
+            ->unique()
             ->values();
 
         return response()->json([
             'success' => true,
             'data' => [
-                'cities' => $cities
+                'locations' => $locations
             ]
         ], 200);
     }
 
     /**
-     * Get vacancy types for filter
+     * Get vacancy employment types for filter
      */
     public function types()
     {
-        $types = Vacancy::where('status', 'active')
-            ->whereNotNull('type')
-            ->distinct()
-            ->pluck('type')
+        // Since employment_type is stored in details jsonb field, we need to extract unique values
+        $vacancies = Vacancy::whereNotNull('details')->get();
+        
+        $types = $vacancies->pluck('details.employment_type')
             ->filter()
+            ->unique()
             ->values();
 
         return response()->json([
             'success' => true,
             'data' => [
-                'types' => $types
+                'employment_types' => $types
             ]
         ], 200);
     }

@@ -44,6 +44,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::prefix('services')->name('services.')->group(function () {
         Route::get('/', [ServiceController::class, 'index'])->name('index');
         Route::get('/{id}', [ServiceController::class, 'show'])->name('show');
+        Route::get('/filters/categories', [ServiceController::class, 'categories'])->name('categories');
     });
 
     // Public organizations

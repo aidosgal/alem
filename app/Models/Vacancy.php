@@ -14,20 +14,11 @@ class Vacancy extends Model
         'organization_id',
         'title',
         'description',
-        'requirements',
-        'type',
-        'city',
-        'address',
-        'salary_from',
-        'salary_to',
-        'status',
         'details',
     ];
 
     protected $casts = [
         'details' => 'array',
-        'salary_from' => 'decimal:2',
-        'salary_to' => 'decimal:2',
     ];
 
     /**
@@ -38,19 +29,5 @@ class Vacancy extends Model
         return $this->belongsTo(Organization::class);
     }
 
-    /**
-     * Get formatted salary display.
-     */
-    public function getSalaryDisplayAttribute(): string
-    {
-        if ($this->salary_from && $this->salary_to) {
-            return number_format($this->salary_from, 0, ',', ' ') . ' - ' . number_format($this->salary_to, 0, ',', ' ') . ' ₸';
-        } elseif ($this->salary_from) {
-            return 'от ' . number_format($this->salary_from, 0, ',', ' ') . ' ₸';
-        } elseif ($this->salary_to) {
-            return 'до ' . number_format($this->salary_to, 0, ',', ' ') . ' ₸';
-        }
-        return 'По договоренности';
-    }
 }
 

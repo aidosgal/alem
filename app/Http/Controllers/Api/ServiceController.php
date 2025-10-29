@@ -15,11 +15,11 @@ class ServiceController extends Controller
     {
         $query = Service::with(['organization'])->where('status', 'active');
 
-        // Search by name or description
+        // Search by title or description
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
         }
@@ -72,7 +72,7 @@ class ServiceController extends Controller
                         'organization' => [
                             'id' => $service->organization->id,
                             'name' => $service->organization->name,
-                            'logo' => $service->organization->logo,
+                            'image' => $service->organization->image,
                         ],
                         'created_at' => $service->created_at->toISOString(),
                         'updated_at' => $service->updated_at->toISOString(),
@@ -118,13 +118,33 @@ class ServiceController extends Controller
                         'id' => $service->organization->id,
                         'name' => $service->organization->name,
                         'description' => $service->organization->description,
-                        'logo' => $service->organization->logo,
-                        'address' => $service->organization->address,
+                        'image' => $service->organization->image,
+                        'email' => $service->organization->email,
                         'phone' => $service->organization->phone,
                     ],
                     'created_at' => $service->created_at->toISOString(),
                     'updated_at' => $service->updated_at->toISOString(),
                 ]
+            ]
+        ], 200);
+    }
+
+    /**
+     * Get available categories for filter
+     */
+    public function categories()
+    {
+        $categories = Service::where('status', 'active')
+            ->whereNotNull('category')
+            ->distinct()
+            ->pluck('category')
+            ->filter()
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'categories' => $categories
             ]
         ], 200);
     }

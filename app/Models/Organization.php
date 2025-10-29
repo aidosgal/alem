@@ -30,6 +30,22 @@ class Organization extends Model
     }
 
     /**
+     * Get the vacancies for the organization.
+     */
+    public function vacancies()
+    {
+        return $this->hasMany(Vacancy::class);
+    }
+
+    /**
+     * Get the services for the organization.
+     */
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
+
+    /**
      * Get the organization balance.
      */
     public function balance()
