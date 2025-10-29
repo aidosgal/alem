@@ -95,13 +95,15 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'id' => $chat->id,
-                'organization' => [
-                    'id' => $chat->organization->id,
-                    'name' => $chat->organization->name,
-                    'logo' => $chat->organization->logo,
-                ],
-                'created_at' => $chat->created_at->toISOString(),
+                'chat' => [
+                    'id' => $chat->id,
+                    'organization' => [
+                        'id' => $chat->organization->id,
+                        'name' => $chat->organization->name,
+                        'logo' => $chat->organization->logo,
+                    ],
+                    'created_at' => $chat->created_at->toISOString(),
+                ]
             ]
         ], 200);
     }
