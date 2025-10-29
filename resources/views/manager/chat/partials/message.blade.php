@@ -31,7 +31,7 @@
             <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-2 status-badge">
                 <p class="text-sm font-medium text-blue-900">📋 {{ $message->metadata['order_title'] ?? 'Заказ' }}</p>
                 @if(isset($message->metadata['order_price']))
-                    <p class="text-xs text-blue-700">Цена: ${{ number_format($message->metadata['order_price'], 2) }}</p>
+                    <p class="text-xs text-blue-700">Цена: {{ number_format($message->metadata['order_price'], 0, ',', ' ') }} ₸</p>
                 @endif
             </div>
         @endif

@@ -18,10 +18,14 @@ class OrganizationSwitchController extends Controller
         $manager = $request->user()->manager;
         
         // Get organizations where manager is owner
-        $ownedOrganizations = $manager->ownedOrganizations()->get();
+        $ownedOrganizations = $manager->ownedOrganizations()
+            ->withCount('vacancies')
+            ->get();
         
         // Get organizations where manager is member
-        $memberOrganizations = $manager->memberOrganizations()->get();
+        $memberOrganizations = $manager->memberOrganizations()
+            ->withCount('vacancies')
+            ->get();
         
         $currentOrganization = $manager->currentOrganization();
 

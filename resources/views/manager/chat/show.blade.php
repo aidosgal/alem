@@ -184,24 +184,25 @@
                                        onchange="calculateTotalPrice()"
                                        class="w-4 h-4 text-[#319885] border-gray-300 rounded focus:ring-[#319885]">
                                 <span class="ml-3 text-sm text-gray-900">{{ $service->title }}</span>
-                                <span class="ml-auto text-sm text-gray-600">${{ number_format($service->price, 2) }}</span>
+                                <span class="ml-auto text-sm text-gray-600">{{ number_format($service->price, 0, ',', ' ') }} ₸</span>
                             </label>
                         @endforeach
                     </div>
-                    <p class="mt-2 text-sm text-gray-500">Сумма услуг: $<span id="services-total">0.00</span></p>
+                    <p class="mt-2 text-sm text-gray-500">Сумма услуг: <span id="services-total">0</span> ₸</p>
                 </div>
 
                 <!-- Price -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Цена заказа <span class="text-red-500">*</span>
+                        Цена заказа (₸) <span class="text-red-500">*</span>
                     </label>
                     <input type="number" 
                            name="price" 
                            id="order-price"
-                           step="0.01"
+                           step="1"
                            min="0"
                            required
+                           placeholder="50000"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent input-animated">
                     <p class="mt-1 text-xs text-gray-500">Можно изменить независимо от суммы услуг</p>
                 </div>
@@ -508,7 +509,7 @@ function createMessageHTML(msg, isOwn) {
         contentHTML = `
             <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-2 transition-all duration-300 hover:shadow-md">
                 <p class="text-sm font-medium text-blue-900">📋 ${msg.metadata.order_title}</p>
-                <p class="text-xs text-blue-700">Цена: $${msg.metadata.order_price}</p>
+                <p class="text-xs text-blue-700">Цена: ${Math.round(msg.metadata.order_price).toLocaleString('ru-RU')} ₸</p>
             </div>
         `;
     }
@@ -599,8 +600,8 @@ function calculateTotalPrice() {
     checkboxes.forEach(cb => {
         total += parseFloat(cb.dataset.price);
     });
-    document.getElementById('services-total').textContent = total.toFixed(2);
-    document.getElementById('order-price').value = total.toFixed(2);
+    document.getElementById('services-total').textContent = Math.round(total).toLocaleString('ru-RU');
+    document.getElementById('order-price').value = Math.round(total);
 }
 
 // Handle order form submission

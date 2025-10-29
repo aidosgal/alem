@@ -12,18 +12,19 @@ class OrganizationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Organization::withCount('vacancies');
+        $query = Organization::query();
 
         // Optional search filter
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'ILIKE', "%{$search}%")
-                  ->orWhere('description', 'ILIKE', "%{$search}%");
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('description', 'LIKE', "%{$search}%");
             });
         }
 
-        $organizations = $query->select('id', 'name', 'description', 'image', 'email', 'phone')
+        $organizations = $query->withCount('vacancies')
+            ->select('id', 'name', 'description', 'image', 'email', 'phone')
             ->orderBy('name')
             ->get();
 
@@ -37,7 +38,7 @@ class OrganizationController extends Controller
                     'image' => $org->image,
                     'email' => $org->email,
                     'phone' => $org->phone,
-                    'vacancies_count' => $org->vacancies_count,
+                    'vacancies_count' => $org->vacancies_count ?? 0,
                 ];
             })
         ], 200);

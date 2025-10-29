@@ -57,9 +57,9 @@
                                 <div class="text-sm text-gray-500 mt-1 line-clamp-1">{{ Str::limit($service->description, 60) }}</div>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             @if($service->price)
-                                {{ number_format($service->price, 2) }} ₸
+                                {{ number_format($service->price, 0, ',', ' ') }} ₸
                             @else
                                 —
                             @endif

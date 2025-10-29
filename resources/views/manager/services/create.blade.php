@@ -57,16 +57,16 @@
             </div>
 
             <div>
-                <label for="price" class="block text-sm font-medium text-gray-900 mb-2">Цена (EUR)</label>
+                <label for="price" class="block text-sm font-medium text-gray-900 mb-2">Цена (₸)</label>
                 <input 
                     type="number" 
                     id="price" 
                     name="price" 
                     class="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-lg outline-none transition-colors focus:border-[#319885]" 
-                    placeholder="99.99"
+                    placeholder="50000"
                     value="{{ old('price') }}"
                     min="0"
-                    step="0.01"
+                    step="1"
                 >
                 <span class="block mt-1.5 text-xs text-gray-500">Оставьте пустым, если цена договорная</span>
             </div>
