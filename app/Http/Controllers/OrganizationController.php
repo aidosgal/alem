@@ -23,8 +23,9 @@ class OrganizationController extends Controller
             });
         }
 
-        $organizations = $query->withCount('vacancies')
+        $organizations = $query
             ->select('id', 'name', 'description', 'image', 'email', 'phone')
+            ->withCount('vacancies')
             ->orderBy('name')
             ->get();
 
