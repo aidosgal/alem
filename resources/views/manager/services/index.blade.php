@@ -59,7 +59,7 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-700">
                             @if($service->price)
-                                {{ number_format($service->price, 2) }} EUR
+                                {{ number_format($service->price, 2) }} ₸
                             @else
                                 —
                             @endif

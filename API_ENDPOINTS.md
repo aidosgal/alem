@@ -62,12 +62,9 @@ Get detailed information about a specific organization including all active serv
         "title": "Service Name",
         "description": "Service description",
         "price": "150000.00",
-        "image": "path/to/service.jpg",
-        "category": "Category Name",
         "duration_days": 30,
         "duration_min_days": 20,
-        "duration_max_days": 40,
-        "status": "active"
+        "duration_max_days": 40
       }
     ]
   }
@@ -226,10 +223,9 @@ Get a paginated list of services with filtering and search.
 **Query Parameters:**
 - `search` (optional) - Search by service title or description
 - `organization_id` (optional) - Filter by organization UUID
-- `category` (optional) - Filter by category
 - `min_price` (optional) - Minimum price filter
 - `max_price` (optional) - Maximum price filter
-- `sort_by` (optional) - Sort field: `created_at`, `updated_at`, `price`, `popular` (default: `created_at`)
+- `sort_by` (optional) - Sort field: `created_at`, `updated_at`, `price`, `title`, `popular` (default: `created_at`)
 - `sort_order` (optional) - Sort order: `asc` or `desc` (default: `desc`)
 - `per_page` (optional) - Items per page (default: 15)
 - `page` (optional) - Page number
@@ -242,11 +238,12 @@ Get a paginated list of services with filtering and search.
     "services": [
       {
         "id": "uuid",
-        "name": "Service Name",
+        "title": "Service Name",
         "description": "Service description",
         "price": "150000.00",
-        "status": "active",
-        "image": "path/to/service.jpg",
+        "duration_days": 30,
+        "duration_min_days": 20,
+        "duration_max_days": 40,
         "organization": {
           "id": "uuid",
           "name": "Organization Name",
@@ -282,11 +279,12 @@ Get detailed information about a specific service.
   "data": {
     "service": {
       "id": "uuid",
-      "name": "Service Name",
+      "title": "Service Name",
       "description": "Detailed service description",
       "price": "150000.00",
-      "status": "active",
-      "image": "path/to/service.jpg",
+      "duration_days": 30,
+      "duration_min_days": 20,
+      "duration_max_days": 40,
       "organization": {
         "id": "uuid",
         "name": "Organization Name",
@@ -307,6 +305,8 @@ Get detailed information about a specific service.
 ### Get Service Categories
 Get a list of unique service categories for filtering.
 
+**Note:** This endpoint currently returns an empty array as the category field is not yet implemented in the database. It's kept for future compatibility.
+
 **Endpoint:** `GET /api/v1/services/filters/categories`
 
 **Response:**
@@ -314,12 +314,7 @@ Get a list of unique service categories for filtering.
 {
   "success": true,
   "data": {
-    "categories": [
-      "Консультация",
-      "Документооборот",
-      "Регистрация",
-      "Лицензирование"
-    ]
+    "categories": []
   }
 }
 ```
@@ -359,4 +354,5 @@ All endpoints return error responses in the following format:
 3. Pagination is available on all list endpoints
 4. Filtering parameters can be combined
 5. The `details` field in vacancies allows flexible data storage for future extensions
-6. Only active services are returned in organization details and service listings
+6. Services currently don't have status, image, or category fields - these are planned for future implementation
+7. All prices are in decimal format with 2 decimal places

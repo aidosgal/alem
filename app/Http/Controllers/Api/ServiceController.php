@@ -13,7 +13,7 @@ class ServiceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Service::with(['organization'])->where('status', 'active');
+        $query = Service::with(['organization']);
 
         // Search by title or description
         if ($request->has('search')) {
@@ -38,20 +38,17 @@ class ServiceController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        // Filter by category if you have categories
-        if ($request->has('category')) {
-            $query->where('category', $request->category);
-        }
-
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
         
-        // Allow sorting by popular (orders count)
+        // Allow sorting by popular (orders count) or standard fields
         if ($sortBy === 'popular') {
             $query->withCount('orders')->orderBy('orders_count', 'desc');
-        } else {
+        } elseif (in_array($sortBy, ['created_at', 'updated_at', 'title', 'price'])) {
             $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('created_at', $sortOrder);
         }
 
         // Pagination
@@ -64,11 +61,12 @@ class ServiceController extends Controller
                 'services' => $services->map(function($service) {
                     return [
                         'id' => $service->id,
-                        'name' => $service->name,
+                        'title' => $service->title,
                         'description' => $service->description,
                         'price' => $service->price,
-                        'status' => $service->status,
-                        'image' => $service->image,
+                        'duration_days' => $service->duration_days,
+                        'duration_min_days' => $service->duration_min_days,
+                        'duration_max_days' => $service->duration_max_days,
                         'organization' => [
                             'id' => $service->organization->id,
                             'name' => $service->organization->name,
@@ -109,11 +107,12 @@ class ServiceController extends Controller
             'data' => [
                 'service' => [
                     'id' => $service->id,
-                    'name' => $service->name,
+                    'title' => $service->title,
                     'description' => $service->description,
                     'price' => $service->price,
-                    'status' => $service->status,
-                    'image' => $service->image,
+                    'duration_days' => $service->duration_days,
+                    'duration_min_days' => $service->duration_min_days,
+                    'duration_max_days' => $service->duration_max_days,
                     'organization' => [
                         'id' => $service->organization->id,
                         'name' => $service->organization->name,
@@ -131,20 +130,17 @@ class ServiceController extends Controller
 
     /**
      * Get available categories for filter
+     * Note: Categories would need to be stored in a details JSONB field
+     * This endpoint is kept for future implementation
      */
     public function categories()
     {
-        $categories = Service::where('status', 'active')
-            ->whereNotNull('category')
-            ->distinct()
-            ->pluck('category')
-            ->filter()
-            ->values();
-
+        // Since there's no category field in the database,
+        // return empty array for now
         return response()->json([
             'success' => true,
             'data' => [
-                'categories' => $categories
+                'categories' => []
             ]
         ], 200);
     }

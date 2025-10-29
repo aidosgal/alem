@@ -48,9 +48,7 @@ class OrganizationController extends Controller
      */
     public function show($id)
     {
-        $organization = Organization::with(['services' => function($query) {
-            $query->where('status', 'active');
-        }])->find($id);
+        $organization = Organization::with(['services'])->find($id);
 
         if (!$organization) {
             return response()->json([
@@ -74,12 +72,9 @@ class OrganizationController extends Controller
                         'title' => $service->title,
                         'description' => $service->description,
                         'price' => $service->price,
-                        'image' => $service->image,
-                        'category' => $service->category,
                         'duration_days' => $service->duration_days,
                         'duration_min_days' => $service->duration_min_days,
                         'duration_max_days' => $service->duration_max_days,
-                        'status' => $service->status,
                     ];
                 })
             ]
