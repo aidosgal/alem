@@ -139,7 +139,7 @@ POST   /manager/order-statuses/initialize - Создать стандартны�
 APP_URL=http://localhost
 
 # WebSocket Notification Server
-WEBSOCKET_URL=ws://localhost:8080
+WEBSOCKET_URL=wss://ws.azed.kz
 
 # База данных (SQLite для разработки)
 DB_CONNECTION=sqlite
@@ -171,9 +171,25 @@ The chat uses your existing Go WebSocket server for real-time notifications. Mes
 ### WebSocket Protocol
 
 Your Go server should support:
-- **Connection URL:** `ws://localhost:8080/chat/{chatId}?user={userId}`
-- **Incoming messages:** `{"type": "notify_chat", "target": "{chatId}"}`
-- **Outgoing messages:** `"refresh"` (string)
+
+**WebSocket Connections:**
+- **Chat Room:** `wss://ws.azed.kz/chat/{chatId}?user={userId}`
+- **Direct User:** `wss://ws.azed.kz/user/{userId}`
+
+**HTTP Notification Endpoints (for Laravel to trigger):**
+- **POST** `https://ws.azed.kz/notify/user/{userId}` - Sends "refresh" to specific user
+- **POST** `https://ws.azed.kz/notify/chat/{chatId}` - Sends "refresh" to all users in chat
+
+**WebSocket Messages:**
+- **Outgoing (to clients):** `"refresh"` (string) - Triggers client to fetch new messages
+
+**Flow:**
+1. User sends message → Laravel saves via REST API
+2. Laravel calls → `POST https://ws.azed.kz/notify/user/{userId}` (notify recipient)
+3. Laravel calls → `POST https://ws.azed.kz/notify/chat/{chatId}` (notify chat room)
+4. Go server broadcasts → `"refresh"` to WebSocket connections
+5. Clients receive `"refresh"` → Fetch new messages via REST API
+6. New messages appear → Without page reload, no duplicates
 
 ### Production Deployment
 

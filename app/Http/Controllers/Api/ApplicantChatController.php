@@ -5,11 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
 use App\Models\Message;
+use App\Services\WebSocketNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ApplicantChatController extends Controller
 {
+    protected WebSocketNotifier $wsNotifier;
+
+    public function __construct(WebSocketNotifier $wsNotifier)
+    {
+        $this->wsNotifier = $wsNotifier;
+    }
+
     /**
      * Send a message from applicant (for testing)
      */
@@ -43,6 +51,11 @@ class ApplicantChatController extends Controller
 
             // Update chat last message time
             $chat->update(['last_message_at' => now()]);
+
+            // Notify organization managers first, then the chat room
+            // Note: You may want to notify specific manager or all organization users
+            $this->wsNotifier->notifyUser($chat->organization_id); // or manager ID
+            $this->wsNotifier->notifyChat($chat->id);
 
             DB::commit();
 

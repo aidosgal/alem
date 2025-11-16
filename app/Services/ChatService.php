@@ -16,13 +16,16 @@ class ChatService
 {
     protected ChatRepository $chatRepository;
     protected MessageRepository $messageRepository;
+    protected WebSocketNotifier $wsNotifier;
 
     public function __construct(
         ChatRepository $chatRepository,
-        MessageRepository $messageRepository
+        MessageRepository $messageRepository,
+        WebSocketNotifier $wsNotifier
     ) {
         $this->chatRepository = $chatRepository;
         $this->messageRepository = $messageRepository;
+        $this->wsNotifier = $wsNotifier;
     }
 
     /**
@@ -93,6 +96,10 @@ class ChatService
             ]);
 
             $this->chatRepository->updateLastMessageAt($chat);
+
+            // Notify applicant user first, then the chat room
+            $this->wsNotifier->notifyUser($chat->applicant_id);
+            $this->wsNotifier->notifyChat($chat->id);
 
             return $message;
         });

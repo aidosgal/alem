@@ -134,6 +134,6 @@ return [
     |
     */
 
-    'websocket_url' => env('WEBSOCKET_URL', 'ws://localhost:8080'),
+    'websocket_url' => env('WEBSOCKET_URL', 'wss://ws.azed.kz'),
 
 ];

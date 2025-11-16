@@ -77,14 +77,14 @@ class WebSocketClient {
 
 // Chat Room Client
 class ChatClient extends WebSocketClient {
-  constructor(chatId, userId, serverUrl = 'ws://localhost:1080') {
+  constructor(chatId, userId, serverUrl = 'wss://ws.azed.kz') {
     super(`${serverUrl}/chat/${chatId}?user=${userId}`);
   }
 }
 
 // User Client
 class UserClient extends WebSocketClient {
-  constructor(userId, serverUrl = 'ws://localhost:1080') {
+  constructor(userId, serverUrl = 'wss://ws.azed.kz') {
     super(`${serverUrl}/user/${userId}`);
   }
 }

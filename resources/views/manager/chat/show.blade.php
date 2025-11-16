@@ -322,10 +322,8 @@ document.getElementById('message-form').addEventListener('submit', async (e) => 
             appendMessage(data.message);
             scrollToBottom();
             
-            // Notify other users in the chat via WebSocket
-            if (chatClient) {
-                chatClient.notifyChat(chatId);
-            }
+            // Server will notify other users via WebSocket
+            // No need to send notification from client
         } else {
             alert(data.error || 'Ошибка отправки сообщения');
         }
