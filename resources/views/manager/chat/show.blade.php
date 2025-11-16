@@ -222,23 +222,36 @@
     </div>
 </div>
 
+@push('head-scripts')
+<script src="/js/chat-websocket.js"></script>
+@endpush
+
 @push('scripts')
 <script>
 const chatId = '{{ $chat->id }}';
+const managerId = '{{ auth()->user()->manager->id ?? '' }}';
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 let selectedFile = null;
 let lastMessageId = null;
-let pollingInterval = null;
+let chatClient = null;
 
-// Initialize polling for new messages
-function initializePolling() {
-    // Poll for new messages every 3 seconds
-    pollingInterval = setInterval(pollNewMessages, 3000);
-    console.log('Message polling initialized');
+// Initialize WebSocket for notifications
+function initializeWebSocket() {
+    const wsUrl = '{{ config("app.websocket_url", "ws://localhost:8080") }}';
+    chatClient = new ChatClient(chatId, managerId, wsUrl);
+    
+    // Connect to WebSocket
+    chatClient.connect();
+    
+    // Listen for refresh notifications
+    chatClient.onRefresh(() => {
+        console.log('New message notification received');
+        fetchNewMessages();
+    });
 }
 
-// Poll for new messages
-async function pollNewMessages() {
+// Fetch new messages when notified
+async function fetchNewMessages() {
     try {
         const messagesList = document.getElementById('messages-list');
         const messages = messagesList.querySelectorAll('.message-item');
@@ -267,7 +280,7 @@ async function pollNewMessages() {
             scrollToBottom();
         }
     } catch (error) {
-        console.error('Error polling messages:', error);
+        console.error('Error fetching new messages:', error);
     }
 }
 
@@ -308,6 +321,11 @@ document.getElementById('message-form').addEventListener('submit', async (e) => 
             // Add message immediately to UI
             appendMessage(data.message);
             scrollToBottom();
+            
+            // Notify other users in the chat via WebSocket
+            if (chatClient) {
+                chatClient.notifyChat(chatId);
+            }
         } else {
             alert(data.error || 'Ошибка отправки сообщения');
         }
@@ -571,7 +589,7 @@ document.getElementById('order-form').addEventListener('submit', async (e) => {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    initializePolling();
+    initializeWebSocket();
     scrollToBottom();
     
     // Show load more button if there are messages
@@ -583,8 +601,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
-    if (pollingInterval) {
-        clearInterval(pollingInterval);
+    if (chatClient) {
+        chatClient.disconnect();
     }
 });
 </script>

@@ -39,7 +39,10 @@ npm run build
 # Терминал 1: Laravel
 php artisan serve
 
-# Терминал 2 (опционально): Vite для hot reload
+# Терминал 2: WebSocket Server (Go - запускается отдельно)
+# См. документацию вашего Go WebSocket сервера
+
+# Терминал 3 (опционально): Vite для hot reload
 npm run dev
 ```
 
@@ -96,7 +99,8 @@ alem/
 ### Технологии
 - **Backend:** Laravel 11, SQLite/PostgreSQL
 - **Frontend:** Tailwind CSS, Vanilla JavaScript
-- **API:** REST API with polling for real-time updates
+- **API:** REST API
+- **Notifications:** WebSocket (lightweight, notifications only)
 - **Fonts:** JetBrains Mono
 
 ## 🔌 API Endpoints
@@ -131,6 +135,12 @@ POST   /manager/order-statuses/initialize - Создать стандартны�
 ### .env ключевые параметры
 
 ```env
+# Base URL
+APP_URL=http://localhost
+
+# WebSocket Notification Server
+WEBSOCKET_URL=ws://localhost:8080
+
 # База данных (SQLite для разработки)
 DB_CONNECTION=sqlite
 
@@ -138,6 +148,36 @@ DB_CONNECTION=sqlite
 CACHE_STORE=database
 QUEUE_CONNECTION=database
 ```
+
+## WebSocket Notification Server
+
+The chat uses your existing Go WebSocket server for real-time notifications. Messages are still sent via REST API.
+
+### How it works
+
+1. **User sends message** → POST to REST API
+2. **Server saves message** → Returns immediately
+3. **Server notifies via WebSocket** → "refresh" signal sent to chat
+4. **Other users receive notification** → Fetch new messages via REST API
+5. **New messages appear** → Without page refresh
+
+**Benefits:**
+- ✅ Lightweight (only notifications, not data)
+- ✅ Auto-reconnect on disconnect
+- ✅ No complex broadcasting setup
+- ✅ REST API for all data transfer
+- ✅ Simple to deploy and maintain
+
+### WebSocket Protocol
+
+Your Go server should support:
+- **Connection URL:** `ws://localhost:8080/chat/{chatId}?user={userId}`
+- **Incoming messages:** `{"type": "notify_chat", "target": "{chatId}"}`
+- **Outgoing messages:** `"refresh"` (string)
+
+### Production Deployment
+
+Update your deployment process to restart the Go WebSocket server along with other services.
 
 ## 🐛 Troubleshooting
 

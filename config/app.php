@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | WebSocket Notification URL
+    |--------------------------------------------------------------------------
+    |
+    | This is the WebSocket server URL used for real-time notifications.
+    | Messages are still sent via REST API, but WebSocket notifies users
+    | to fetch new messages.
+    |
+    */
+
+    'websocket_url' => env('WEBSOCKET_URL', 'ws://localhost:8080'),
+
 ];
