@@ -109,9 +109,11 @@ class ChatController extends Controller
                 ]
             );
 
+            $message->load(['senderManager', 'replyTo']);
+            
             return response()->json([
                 'success' => true,
-                'message' => $message->load(['senderManager', 'replyTo']),
+                'message' => $this->formatMessage($message),
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -146,7 +148,9 @@ class ChatController extends Controller
                 ->get();
 
             return response()->json([
-                'messages' => $newMessages,
+                'messages' => $newMessages->map(function($msg) {
+                    return $this->formatMessage($msg);
+                }),
             ]);
         }
 
@@ -265,9 +269,40 @@ class ChatController extends Controller
             abort(404);
         }
 
-        return Storage::disk('public')->download(
-            $message->file_path,
-            $message->file_name
-        );
+            return Storage::disk('public')->download(
+                $message->file_path,
+                $message->file_name
+            );
+    }
+
+    /**
+     * Format message for JSON response.
+     */
+    protected function formatMessage($message)
+    {
+        return [
+            'id' => $message->id,
+            'chat_id' => $message->chat_id,
+            'content' => $message->content,
+            'type' => $message->type,
+            'file_path' => $message->file_path,
+            'file_name' => $message->file_name,
+            'file_size' => $message->file_size,
+            'metadata' => $message->metadata,
+            'sender' => [
+                'type' => $message->sender_type,
+                'id' => $message->sender_applicant_id ?: $message->sender_organization_manager_id,
+                'name' => $message->isFromApplicant() 
+                    ? ($message->senderApplicant->user->name ?? 'Applicant')
+                    : ($message->senderManager->full_name ?? 'Manager'),
+            ],
+            'reply_to' => $message->replyTo ? [
+                'id' => $message->replyTo->id,
+                'content' => $message->replyTo->content,
+                'sender_name' => $message->replyTo->sender_name,
+            ] : null,
+            'created_at' => $message->created_at->toIso8601String(),
+            'read_at' => $message->read_at?->toIso8601String(),
+        ];
     }
 }

@@ -110,8 +110,7 @@
                       rows="1"
                       placeholder="Введите сообщение..."
                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#319885] focus:border-transparent resize-none input-animated transition-all duration-300"
-                      onkeydown="handleKeyDown(event)"
-                      oninput="handleTyping()"></textarea>
+                      onkeydown="handleKeyDown(event)"></textarea>
 
             <button type="submit" 
                     class="flex-shrink-0 px-6 py-2 text-sm font-medium text-gray-900 bg-gradient-to-r from-[#EFFE6D] to-[#f5ff80] rounded-lg hover:from-[#f5ff80] hover:to-[#EFFE6D] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed btn-ripple shadow-md hover:shadow-lg"
@@ -422,11 +421,19 @@ messagesContainer.addEventListener('drop', (e) => {
 
 // Append new message to chat
 function appendMessage(messageData) {
+    // Validate message data
+    if (!messageData || !messageData.sender || !messageData.sender.type) {
+        console.error('Invalid message data:', messageData);
+        return;
+    }
+    
     const messagesList = document.getElementById('messages-list');
     const isOwnMessage = messageData.sender.type === 'manager';
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `flex ${isOwnMessage ? 'justify-end message-enter-right' : 'justify-start message-enter-left'}`;
+    messageDiv.dataset.messageId = messageData.id;
+    messageDiv.classList.add('message-item');
     messageDiv.innerHTML = createMessageHTML(messageData, isOwnMessage);
     
     messagesList.appendChild(messageDiv);
