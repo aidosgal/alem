@@ -109,7 +109,7 @@ class ChatController extends Controller
                 ]
             );
 
-            $message->load(['senderManager', 'replyTo']);
+            $message->load(['senderManager.user', 'senderApplicant.user', 'replyTo']);
             
             return response()->json([
                 'success' => true,
@@ -280,21 +280,29 @@ class ChatController extends Controller
      */
     protected function formatMessage($message)
     {
+        // Get sender name safely
+        $senderName = 'Unknown';
+        if ($message->isFromApplicant()) {
+            $senderName = optional(optional($message->senderApplicant)->user)->name 
+                ?? 'Applicant';
+        } else if ($message->isFromManager()) {
+            $senderName = optional(optional($message->senderManager)->user)->name 
+                ?? ($message->senderManager->first_name ?? 'Manager');
+        }
+
         return [
             'id' => $message->id,
             'chat_id' => $message->chat_id,
             'content' => $message->content,
-            'type' => $message->type,
+            'type' => $message->type ?? 'text',
             'file_path' => $message->file_path,
             'file_name' => $message->file_name,
             'file_size' => $message->file_size,
-            'metadata' => $message->metadata,
+            'metadata' => $message->metadata ?? [],
             'sender' => [
-                'type' => $message->sender_type,
+                'type' => $message->sender_type ?? 'unknown',
                 'id' => $message->sender_applicant_id ?: $message->sender_organization_manager_id,
-                'name' => $message->isFromApplicant() 
-                    ? ($message->senderApplicant->user->name ?? 'Applicant')
-                    : ($message->senderManager->full_name ?? 'Manager'),
+                'name' => $senderName,
             ],
             'reply_to' => $message->replyTo ? [
                 'id' => $message->replyTo->id,
