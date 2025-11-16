@@ -91,13 +91,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     });
 });
 
-// Test API routes (for testing WebSocket chat)
+// Test API routes
 Route::prefix('test')->name('api.test.')->group(function () {
     Route::post('/create-chat', [TestChatController::class, 'createChat'])->name('create-chat');
     Route::get('/chats', [TestChatController::class, 'getChats'])->name('chats');
 });
 
-// Legacy Applicant chat API routes (for testing without auth)
+// Applicant chat API routes (for testing without auth)
 Route::prefix('applicant')->name('api.applicant.')->group(function () {
     Route::post('/chat/{chatId}/messages', [\App\Http\Controllers\Api\ApplicantChatController::class, 'sendMessage'])->name('send-message');
     Route::get('/chat/{chatId}/messages', [\App\Http\Controllers\Api\ApplicantChatController::class, 'getMessages'])->name('get-messages');

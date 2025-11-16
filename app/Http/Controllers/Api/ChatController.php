@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
 use App\Models\Message;
@@ -260,9 +259,6 @@ class ChatController extends Controller
 
         // Load relationships for response
         $message->load(['attachments', 'repliedTo.attachments']);
-
-        // Broadcast message via WebSocket
-        broadcast(new MessageSent($message))->toOthers();
 
         return response()->json([
             'success' => true,

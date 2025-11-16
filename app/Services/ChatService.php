@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Events\MessageSent;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Order;
@@ -94,9 +93,6 @@ class ChatService
             ]);
 
             $this->chatRepository->updateLastMessageAt($chat);
-
-            // Broadcast message via WebSocket
-            broadcast(new MessageSent($message))->toOthers();
 
             return $message;
         });
@@ -201,9 +197,6 @@ class ChatService
             ]);
 
             $this->chatRepository->updateLastMessageAt($chat);
-            
-            \Log::info('Broadcasting message');
-            broadcast(new MessageSent($message))->toOthers();
 
             \Log::info('Order creation completed', ['order_id' => $order->id]);
             return $order;

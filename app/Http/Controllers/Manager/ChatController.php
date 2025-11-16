@@ -136,6 +136,21 @@ class ChatController extends Controller
             return response()->json(['error' => 'Чат не найден.'], 404);
         }
 
+        // Check if polling for new messages (after_id parameter)
+        if ($request->has('after_id')) {
+            $afterId = $request->input('after_id');
+            $newMessages = \App\Models\Message::where('chat_id', $chat->id)
+                ->where('id', '>', $afterId)
+                ->with(['senderApplicant.user', 'senderManager', 'replyTo'])
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            return response()->json([
+                'messages' => $newMessages,
+            ]);
+        }
+
+        // Load older messages (pagination)
         $messages = $this->chatService->getChatMessages(
             $chat,
             $organization,

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
 use App\Models\Message;
-use App\Events\MessageSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -44,9 +43,6 @@ class ApplicantChatController extends Controller
 
             // Update chat last message time
             $chat->update(['last_message_at' => now()]);
-
-            // Broadcast message
-            broadcast(new MessageSent($message))->toOthers();
 
             DB::commit();
 

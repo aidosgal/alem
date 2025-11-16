@@ -17,17 +17,7 @@
             </div>
             <div class="ml-3">
                 <h2 class="text-lg font-semibold text-gray-900">{{ $chat->applicant->user->name ?? 'Аппликант' }}</h2>
-                <div class="flex items-center gap-2">
-                    <div id="typing-indicator" class="typing-indicator" style="display: none;">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                    <div class="connection-status text-sm" id="connection-status">
-                        <span class="status-dot disconnected"></span>
-                        <span class="text-gray-500">Подключение...</span>
-                    </div>
-                </div>
+                <p class="text-sm text-gray-500">{{ $chat->applicant->user->email ?? '' }}</p>
             </div>
         </div>
         <div class="flex gap-2">
@@ -236,94 +226,48 @@
 <script>
 const chatId = '{{ $chat->id }}';
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-let channel = null;
 let selectedFile = null;
-let reconnectAttempts = 0;
-let maxReconnectAttempts = 5;
-let typingTimeout = null;
-let isTyping = false;
+let lastMessageId = null;
+let pollingInterval = null;
 
-// Initialize Echo connection
-function initializeEcho() {
+// Initialize polling for new messages
+function initializePolling() {
+    // Poll for new messages every 3 seconds
+    pollingInterval = setInterval(pollNewMessages, 3000);
+    console.log('Message polling initialized');
+}
+
+// Poll for new messages
+async function pollNewMessages() {
     try {
-        // Subscribe to chat channel
-        channel = window.Echo.private(`chat.${chatId}`)
-            .listen('.message.sent', (e) => {
-                console.log('New message received:', e);
-                appendMessage(e);
-                scrollToBottom();
-            })
-            .error((error) => {
-                console.error('Channel error:', error);
-                updateConnectionStatus(false);
-                attemptReconnect();
-            });
-
-        // Connection successful
-        window.Echo.connector.pusher.connection.bind('connected', () => {
-            console.log('WebSocket connected');
-            updateConnectionStatus(true);
-            reconnectAttempts = 0;
-        });
-
-        // Connection lost
-        window.Echo.connector.pusher.connection.bind('disconnected', () => {
-            console.log('WebSocket disconnected');
-            updateConnectionStatus(false);
-        });
-
-        // Connection error
-        window.Echo.connector.pusher.connection.bind('error', (error) => {
-            console.error('WebSocket error:', error);
-            updateConnectionStatus(false);
-            attemptReconnect();
-        });
-
-    } catch (error) {
-        console.error('Failed to initialize Echo:', error);
-        updateConnectionStatus(false);
-        attemptReconnect();
-    }
-}
-
-// Attempt to reconnect
-function attemptReconnect() {
-    if (reconnectAttempts < maxReconnectAttempts) {
-        reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-        console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
+        const messagesList = document.getElementById('messages-list');
+        const messages = messagesList.querySelectorAll('.message-item');
         
-        setTimeout(() => {
-            console.log('Attempting to reconnect...');
-            if (channel) {
-                window.Echo.leave(`chat.${chatId}`);
-            }
-            initializeEcho();
-        }, delay);
-    } else {
-        console.error('Max reconnection attempts reached');
-        updateConnectionStatus(false, 'Не удалось подключиться. Обновите страницу.');
-    }
-}
+        if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            lastMessageId = lastMessage.dataset.messageId;
+        }
 
-// Update connection status indicator
-function updateConnectionStatus(connected, customMessage = null) {
-    const statusEl = document.getElementById('connection-status');
-    const statusDot = statusEl.querySelector('.status-dot');
-    const statusText = statusEl.querySelector('span:last-child');
-    
-    if (connected) {
-        statusDot.classList.remove('disconnected');
-        statusDot.classList.add('connected');
-        statusText.textContent = 'Подключено';
-        statusText.classList.remove('text-red-600');
-        statusText.classList.add('text-green-600');
-    } else {
-        statusDot.classList.remove('connected');
-        statusDot.classList.add('disconnected');
-        statusText.textContent = customMessage || 'Не подключено';
-        statusText.classList.remove('text-green-600');
-        statusText.classList.add('text-red-600');
+        const url = lastMessageId 
+            ? `/manager/chat/${chatId}/messages?after_id=${lastMessageId}`
+            : `/manager/chat/${chatId}/messages`;
+            
+        const response = await fetch(url, {
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.messages && data.messages.length > 0) {
+            data.messages.forEach(message => {
+                appendMessage(message);
+            });
+            scrollToBottom();
+        }
+    } catch (error) {
+        console.error('Error polling messages:', error);
     }
 }
 
@@ -361,11 +305,8 @@ document.getElementById('message-form').addEventListener('submit', async (e) => 
             input.style.height = 'auto';
             clearFile();
             
-            // Message will be added via WebSocket
-            // But add it immediately for better UX
-            if (!channel) {
-                appendMessage(data.message);
-            }
+            // Add message immediately to UI
+            appendMessage(data.message);
             scrollToBottom();
         } else {
             alert(data.error || 'Ошибка отправки сообщения');
@@ -391,11 +332,6 @@ document.getElementById('message-input').addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = (this.scrollHeight) + 'px';
 });
-
-// Handle typing indicator
-function handleTyping() {
-    // TODO: Implement typing indicator broadcast
-}
 
 // File handling
 function handleFileSelect(event) {
@@ -635,7 +571,7 @@ document.getElementById('order-form').addEventListener('submit', async (e) => {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    initializeEcho();
+    initializePolling();
     scrollToBottom();
     
     // Show load more button if there are messages
@@ -647,8 +583,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
-    if (channel) {
-        window.Echo.leave(`chat.${chatId}`);
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
     }
 });
 </script>
